@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jbz.mapper.OrdersMapper">
+    <!-- 支持缓存配置 -->
+    <cache type="com.jbz.utils.RedisCache"/>
+    <!--封装结果集-->
+    <resultMap id="ordersMap" type="com.jbz.domain.Orders">
+        <result column="orderId" property="id"/>
+        <result column="orderNum" property="orderNum"/>
+        <result column="orderTime" property="orderTime"/>
+        <result column="peopleCount" property="peopleCount"/>
+        <result column="orderDesc" property="orderDesc"/>
+        <result column="payType" property="payType"/>
+        <result column="orderStatus" property="orderStatus"/>
+        <collection property="product" ofType="com.jbz.domain.Product">
+            <result column="productName" property="productName"/>
+        </collection>
+        <collection property="member" ofType="com.jbz.domain.Member">
+            <result column="memberName" property="name"/>
+        </collection>
+    </resultMap>
+    <!--分页查询所有的订单列表-->
+    <select id="queryAllOrders" resultMap="ordersMap" parameterType="string">
+        select distinct o.id as
+        orderId,o.orderNum,o.orderTime,o.peopleCount,o.orderDesc,o.payType,o.orderStatus,
+        p.productName as
+        productName,
+        m.name as memberName
+        from orders o join member m on m.id = o.memberId join product p on o.productId=p.id
+        <where>
+            <if test="orderNum != null and orderNum != '' ">
+                o.orderNum like concat('%',#{orderNum},'%')
+            </if>
+        </where>
+    </select>
+    <!--插入一条数据-->
+    <!--通过keyProperty返回插入数据的主键id并赋值给orders的id属性-->
+    <insert id="addOrders" parameterType="object" useGeneratedKeys="true" keyProperty="order.id">
+        insert into orders
+        values (#{order.id}, #{order.orderNum}, #{order.orderTime}, #{order.peopleCount}, #{order.orderDesc},
+                #{order.payType}, #{order.orderStatus}, #{productId}, #{memberId})
+    </insert>
+    <!--查询一条记录-->
+    <!--封装结果集-->
+    <resultMap id="order" type="com.jbz.domain.Orders">
+        <result column="orderId" property="id"/>
+        <result column="orderNum" property="orderNum"/>
+        <result column="orderTime" property="orderTime"/>
+        <result column="peopleCount" property="peopleCount"/>
+        <result column="orderDesc" property="orderDesc"/>
+        <result column="payType" property="payType"/>
+        <result column="orderStatus" property="orderStatus"/>
+        <collection property="product" ofType="com.jbz.domain.Product">
+            <id column="productId" property="id"/>
+        </collection>
+        <collection property="member" ofType="com.jbz.domain.Member">
+            <id column="memberId" property="id"/>
+        </collection>
+        <collection property="travellerList" ofType="com.jbz.domain.Traveller">
+            <id column="travellerId" property="id"/>
+        </collection>
+    </resultMap>
+    <select id="queryOrderById" resultMap="order" parameterType="int">
+        select distinct o.id as orderId,
+                        o.orderNum,
+                        o.orderTime,
+                        o.peopleCount,
+                        o.orderDesc,
+                        o.payType,
+                        o.orderStatus,
+                        p.id as productId,
+                        m.id as memberId,
+                        t.id as travellerId
+        from orders o
+                 join member m on m.id = o.memberId
+                 join product p on o.productId = p.id
+                 join order_traveller ot on o.id = ot.orderId
+                 join traveller t on t.id = ot.travellerId
+        where o.id = #{id}
+    </select>
+    <!--更新一条记录-->
+    <update id="updateOrders" parameterType="object">
+        update orders
+        set orderNum=#{order.orderNum},
+            orderTime=#{order.orderTime},
+            peopleCount=#{order.peopleCount},
+            orderDesc=#{order.orderDesc},
+            payType=#{order.payType},
+            orderStatus=#{order.orderStatus},
+            productId=#{productId},
+            memberId=#{memberId}
+        where id = #{order.id}
+    </update>
+    <!--批量删除-->
+    <delete id="batchDeleteOrder" parameterType="arraylist">
+        delete
+        from orders where orders.id in
+        <foreach collection="array" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+    <resultMap id="orderIds" type="com.jbz.domain.Orders">
+        <result column="id" property="id"/>
+    </resultMap>
+    <!--根据多个产品id查询对应的记录-->
+    <select id="queryOrdersByProductIds" parameterType="arraylist" resultType="int">
+        select id from orders where productId in
+        <foreach collection="array" item="productId" open="(" separator="," close=")">
+            #{productId}
+        </foreach>
+    </select>
+    <!--根据多个产memberId查询对应的记录-->
+    <select id="queryOrdersByMemberIds" parameterType="arraylist" resultType="int">
+        select id from orders where orders.memberId in
+        <foreach collection="array" item="memberId" open="(" separator="," close=")">
+            #{memberId}
+        </foreach>
+    </select>
+
+</mapper>

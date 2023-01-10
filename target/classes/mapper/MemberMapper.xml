@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jbz.mapper.MemberMapper">
+    <!-- 支持缓存配置 -->
+    <cache type="com.jbz.utils.RedisCache"/>
+    <sql id="memberVO">
+        id, name, nickName, phoneNum, email
+    </sql>
+    <!--分页查询所有的成员列表-->
+    <select id="queryAllMember" resultType="com.jbz.domain.Member" parameterType="string">
+        select
+        <include refid="memberVO"/>
+        from member
+        <where>
+            <if test="name != null and name != '' ">
+                name like concat('%',#{name},'%')
+            </if>
+        </where>
+    </select>
+    <!--批量删除-->
+    <delete id="batchDeleteMemberByIds" parameterType="arraylist">
+        delete
+        from member where member.id in
+        <foreach collection="array" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+</mapper>

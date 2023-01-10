@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jbz.mapper.OrderTravellerMapper">
+    <!-- 支持缓存配置 -->
+    <cache type="com.jbz.utils.RedisCache"/>
+    <!--添加记录-->
+    <insert id="insertOrderTraveller" parameterType="object">
+        insert into order_traveller(orderId, travellerId)
+        values
+        <foreach collection="array" separator="," item="travellerId">
+            (#{orderId},#{travellerId})
+        </foreach>
+    </insert>
+    <!--批量删除-->
+    <delete id="batchDeleteOrderTraveler" parameterType="arraylist">
+        delete
+        from order_traveller where order_traveller.orderId in
+        <foreach collection="array" item="orderId" open="(" separator="," close=")">
+            #{orderId}
+        </foreach>
+    </delete>
+    <!--根据travellerId批量删除-->
+    <delete id="batchDeleteOrderTravelerByTravellerIds" parameterType="arraylist">
+        delete
+        from order_traveller where order_traveller.travellerId in
+        <foreach collection="array" item="travellerId" open="(" separator="," close=")">
+            #{travellerId}
+        </foreach>
+    </delete>
+</mapper>

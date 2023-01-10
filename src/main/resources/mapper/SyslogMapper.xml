@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jbz.mapper.SyslogMapper">
+    <!-- 支持缓存配置 -->
+    <cache type="com.jbz.utils.RedisCache"/>
+    <sql id="syslogVO">
+        id, visitTime, username, ip, url, executionTime, method,status
+    </sql>
+    <!--分页查询所有的日志列表-->
+    <select id="queryAllSyslog" resultType="com.jbz.domain.Syslog" parameterType="string">
+        select
+        <include refid="syslogVO"/>
+        from syslog
+        <where>
+            <if test="username != null and username != '' ">
+                username like concat('%',#{username},'%')
+            </if>
+        </where>
+        order by visitTime desc
+    </select>
+    <!--删除日志-->
+    <delete id="deleteSyslogById" parameterType="int">
+        delete
+        from syslog
+        where id = #{id}
+    </delete>
+    <!--批量删除-->
+    <delete id="batchDeleteSyslog" parameterType="arraylist">
+        delete
+        from syslog
+        where id in
+        <foreach collection="array" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+</mapper>

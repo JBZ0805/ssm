@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jbz.mapper.UserMapper">
+    <!-- 支持缓存配置 -->
+    <cache type="com.jbz.utils.RedisCache"/>
+    <!--封装字段-->
+    <sql id="UserVO">
+        id, email, username, password, phoneNum, status
+    </sql>
+    <!--封装结果集-->
+    <resultMap id="userMap" type="com.jbz.domain.User">
+        <result column="userId" property="id"/>
+        <result column="email" property="email"/>
+        <result column="username" property="username"/>
+        <result column="phoneNum" property="phoneNum"/>
+        <result column="roleNames" property="roleNames"/>
+    </resultMap>
+    <!--多对多查询
+    查询所有的用户列表以及对应的角色
+    group_concat能将相同的行组合起来-->
+    <select id="queryAllUser" resultMap="userMap" parameterType="string">
+        select u.id as userId,u.email,u.username,u.phoneNum,group_concat(r.roleDesc) as roleNames
+        from user u left join user_role ur on u.id = ur.userId left join role r on ur.roleId = r.id
+        <where>
+            <if test="username != null and username != '' ">
+                u.username like concat('%',#{username},'%')
+            </if>
+        </where>
+        group by u.id
+    </select>
+    <!--新增一个用户-->
+    <!--通过keyProperty返回插入数据的主键id并赋值给user的id属性-->
+    <insert id="insertUser" parameterType="com.jbz.domain.User" useGeneratedKeys="true" keyProperty="id">
+        insert into user
+        values (#{id}, #{email}, #{username}, #{password}, #{phoneNum}, #{status}, #{img})
+    </insert>
+    <!--根据id查询一条记录-->
+    <!--封装结果集-->
+    <resultMap id="user" type="com.jbz.domain.User">
+        <result column="userId" property="id"/>
+        <result column="email" property="email"/>
+        <result column="username" property="username"/>
+        <result column="password" property="password"/>
+        <result column="phoneNum" property="phoneNum"/>
+        <collection property="roles" ofType="com.jbz.domain.Role">
+            <id column="roleId" property="id"/>
+            <result column="roleDesc" property="roleDesc"/>
+        </collection>
+    </resultMap>
+    <select id="queryUserById" resultMap="user" parameterType="int">
+        select u.id as userId, u.email, u.username, u.password, u.phoneNum, r.id as roleId, r.roleDesc
+        from user u
+                 left join user_role ur on u.id = ur.userId
+                 left join role r on ur.roleId = r.id
+        where u.id = #{id}
+    </select>
+    <!--更新用户-->
+    <update id="updateUser" parameterType="com.jbz.domain.User">
+        update user
+        set email=#{email},
+            username=#{username},
+            password=#{password},
+            phoneNum=#{phoneNum}
+        where id = #{id}
+    </update>
+    <!--删除用户-->
+    <delete id="deleteUserById" parameterType="int">
+        delete
+        from user
+        where id = #{id}
+    </delete>
+    <!--批量删除用户-->
+    <delete id="batchDeleteUser" parameterType="arraylist">
+        delete
+        from user
+        where id in
+        <foreach collection="array" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+</mapper>

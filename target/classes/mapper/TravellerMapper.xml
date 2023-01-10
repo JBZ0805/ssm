@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jbz.mapper.TravellerMapper">
+    <!-- 支持缓存配置 -->
+    <cache type="com.jbz.utils.RedisCache"/>
+    <sql id="travellerVO">
+        id, name, sex, phoneNum, credentialsType, credentialsNum, travellerType
+    </sql>
+    <!--查询所有的旅客列表-->
+    <select id="queryAllTraveller" resultType="com.jbz.domain.Traveller" parameterType="string">
+        select
+        <include refid="travellerVO"/>
+        from traveller
+        <where>
+            <if test="name != null and name != '' ">
+                name like concat('%',#{name},'%')
+            </if>
+        </where>
+    </select>
+    <!--批量删除-->
+    <delete id="batchDeleteTraveller" parameterType="arraylist">
+        delete
+        from traveller where traveller.id in
+        <foreach collection="array" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+</mapper>

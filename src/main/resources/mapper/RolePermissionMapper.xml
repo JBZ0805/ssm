@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jbz.mapper.RolePermissionMapper">
+    <!-- 支持缓存配置 -->
+    <cache type="com.jbz.utils.RedisCache"/>
+    <!--添加用户的角色-->
+    <insert id="addRolePermission" parameterType="object">
+        insert into role_permission(permissionId, roleId)
+        values
+        <foreach collection="array" separator="," item="permissionId">
+            (#{permissionId},#{roleId})
+        </foreach>
+    </insert>
+    <delete id="batchDeleteRolePermissionByRoleIds" parameterType="arraylist">
+        delete
+        from role_permission where role_permission.roleId in
+        <foreach collection="array" item="roleId" open="(" separator="," close=")">
+            #{roleId}
+        </foreach>
+    </delete>
+    <delete id="batchDeleteRolePermissionByPermissionIds" parameterType="arraylist">
+        delete
+        from role_permission where role_permission.permissionId in
+        <foreach collection="array" item="permissionId" open="(" separator="," close=")">
+            #{permissionId}
+        </foreach>
+    </delete>
+    <select id="queryAllPermissionByRoleIds" parameterType="arraylist" resultType="int">
+        select permissionId from role_permission where role_permission.roleId in
+        <foreach collection="array" item="roleId" open="(" separator="," close=")">
+            #{roleId}
+        </foreach>
+    </select>
+</mapper>

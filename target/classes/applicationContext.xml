@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://www.springframework.org/schema/context
+       http://www.springframework.org/schema/context/spring-context.xsd http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd">
+    <!--1.加载jdbc.properties文件-->
+    <context:property-placeholder location="classpath:jdbc.properties"/>
+    <!--配置数据源对象及相关参数-->
+    <bean id="dataSource" class="com.alibaba.druid.pool.DruidDataSource">
+        <property name="driverClassName" value="${jdbc.driver}"/>
+        <property name="url" value="${jdbc.url}"/>
+        <property name="username" value="${jdbc.username}"/>
+        <property name="password" value="${jdbc.password}"/>
+    </bean>
+    <!--3.配置SqlSessionFactory-->
+    <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <!--设置数据源-->
+        <property name="dataSource" ref="dataSource"/>
+        <!--设置Mybatis核心配置文件 导入SqlMapConfig.xml-->
+        <property name="configLocation" value="classpath:SqlMapConfig.xml"/>
+        <!--指定mybatis的mapper映射文件的位置-->
+        <property name="mapperLocations" value="classpath:mapper/*.xml"/>
+    </bean>
+    <!--4.配置Mapper扫描的包-->
+    <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+        <!--配置指定mapper扫描接口的包路径-->
+        <property name="basePackage" value="com.jbz.mapper"/>
+    </bean>
+    <!--5.开启动态代理-->
+    <aop:aspectj-autoproxy/>
+    <!--引入redis配置文件-->
+    <import resource="application-redis.xml"/>
+</beans>

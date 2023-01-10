@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jbz.mapper.ProductMapper">
+    <!-- 支持缓存配置 -->
+    <cache type="com.jbz.utils.RedisCache"/>
+    <sql id="sqlField">
+        id, productNum, productName, cityName, departureTime, productPrice, productDesc, productStatus
+    </sql>
+    <!--查询所有的产品列表-->
+    <select id="queryAllProduct" resultType="com.jbz.domain.Product" parameterType="string">
+        select
+        <include refid="sqlField"/>
+        from product
+        <where>
+            <if test="productName != null and productName != '' ">
+                productName like concat('%',#{productName},'%')
+            </if>
+        </where>
+    </select>
+    <!--新增一个产品-->
+    <insert id="addProduct" parameterType="com.jbz.domain.Product">
+        insert into product
+        values (#{id}, #{productNum}, #{productName}, #{cityName}, #{departureTime}, #{productPrice},
+                #{productDesc}, #{productStatus})
+    </insert>
+    <!--根据id查询一条记录-->
+    <select id="queryProductById" parameterType="int" resultType="com.jbz.domain.Product">
+        select
+        <include refid="sqlField"/>
+        from product
+        where id=#{id}
+    </select>
+    <!--修改产品信息-->
+    <update id="updateProductById" parameterType="com.jbz.domain.Product">
+        update product
+        set productNum=#{productNum},
+            productName=#{productName},
+            cityName=#{cityName},
+            departureTime=#{departureTime},
+            productPrice=#{productPrice},
+            productDesc=#{productDesc},
+            productStatus=#{productStatus}
+        where id = #{id}
+    </update>
+    <!--根据id删除产品-->
+    <delete id="deleteProduceById" parameterType="int">
+        delete
+        from product
+        where id = #{id}
+    </delete>
+    <!--批量删除-->
+    <delete id="batchDeleteProductByIds" parameterType="arraylist">
+        delete from product
+        where id in
+        <!--遍历ids数组-->
+        <foreach collection="array" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+    <!--批量上架-->
+    <update id="batchOpenProductByIds" parameterType="arraylist">
+        update product set productStatus = 1
+        where id in
+        <!--遍历ids数组-->
+        <foreach collection="array" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </update>
+    <!--批量下架-->
+    <update id="batchCloseProductByIds" parameterType="arraylist">
+        update product set productStatus = 0
+        where id in
+        <!--遍历ids数组-->
+        <foreach collection="array" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </update>
+</mapper>
